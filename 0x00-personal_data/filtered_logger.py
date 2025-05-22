@@ -1,10 +1,10 @@
 import logging
+from typing import List, Tuple
+
+PII_FIELDS: Tuple[str, ...] = ("name", "email", "ssn", "password", "phone")
 
 class RedactingFormatter(logging.Formatter):
-    # your RedactingFormatter class implementation here
-    ...
-
-PII_FIELDS = ("name", "email", "phone", "ssn", "password")
+    # Your existing code for RedactingFormatter here
 
 def get_logger() -> logging.Logger:
     logger = logging.getLogger("user_data")
@@ -12,7 +12,8 @@ def get_logger() -> logging.Logger:
     logger.propagate = False
 
     stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(RedactingFormatter(fields=PII_FIELDS))
+    formatter = RedactingFormatter(fields=PII_FIELDS)
+    stream_handler.setFormatter(formatter)
 
     logger.addHandler(stream_handler)
     return logger
