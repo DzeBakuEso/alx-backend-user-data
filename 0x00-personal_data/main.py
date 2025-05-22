@@ -1,22 +1,15 @@
 #!/usr/bin/env python3
 """
-Main file for testing RedactingFormatter
+Main file
 """
+
 import logging
 
-RedactingFormatter = __import__('filtered_logger').RedactingFormatter
+get_logger = __import__('filtered_logger').get_logger
+PII_FIELDS = __import__('filtered_logger').PII_FIELDS
 
-message = (
-    "name=Bob;email=bob@dylan.com;ssn=000-123-0000;password=bobby2019;"
-)
-log_record = logging.LogRecord(
-    "my_logger",
-    logging.INFO,
-    None,
-    None,
-    message,
-    None,
-    None
-)
-formatter = RedactingFormatter(fields=["email", "ssn", "password"])
-print(formatter.format(log_record))
+print(get_logger.__annotations__.get('return'))
+print("PII_FIELDS: {}".format(len(PII_FIELDS)))
+
+logger = get_logger()
+logger.info("User email=john@example.com phone=123-456-7890 ssn=111-22-3333 password=secret name=John")
