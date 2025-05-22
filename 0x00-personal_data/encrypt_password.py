@@ -1,26 +1,31 @@
 #!/usr/bin/env python3
 """
-encrypt_password.py
-Provides password hashing using bcrypt with salt.
+Encryption utilities for password hashing and validation using bcrypt.
 """
 
 import bcrypt
 
-
 def hash_password(password: str) -> bytes:
+    """Hash a password with a salt and return the hashed byte string."""
+    if not isinstance(password, str):
+        raise TypeError("Password must be a string")
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed
+
+def is_valid(hashed_password: bytes, password: str) -> bool:
     """
-    Hash a password using bcrypt with a salt.
-    
+    Validate a plaintext password against the stored hashed password.
+
     Args:
-        password (str): The plaintext password to hash.
-        
+        hashed_password (bytes): The hashed password to check against.
+        password (str): The plaintext password to verify.
+
     Returns:
-        bytes: The salted, hashed password as a byte string.
+        bool: True if password matches the hashed password, False otherwise.
     """
+    if not isinstance(hashed_password, bytes):
+        raise TypeError("hashed_password must be bytes")
     if not isinstance(password, str):
         raise TypeError("password must be a string")
-
-    # Generate salt and hash the password
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
-    return hashed
+    return bcrypt.checkpw(password.encode('utf-8'), hashed_password)
