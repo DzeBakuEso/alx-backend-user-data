@@ -5,42 +5,44 @@ Auth class to manage API authentication
 from typing import List, TypeVar
 from flask import request
 
+
 class Auth:
     """Auth class template for authentication"""
 
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
         """
-        Returns False for now, to be implemented later
+        Determines if a path requires authentication
 
         Args:
-            path (str): The requested path
-            excluded_paths (List[str]): List of paths to exclude from authentication
+            path (str): The request path
+            excluded_paths (List[str]): List of excluded (non-auth) paths
 
         Returns:
-            bool: False (default behavior)
+            bool: True if auth is required, False otherwise
         """
-        return False
+        if path is None:
+            return True
+        if excluded_paths is None or len(excluded_paths) == 0:
+            return True
+
+        # Normalize path to always end with /
+        if not path.endswith('/'):
+            path += '/'
+
+        for excluded in excluded_paths:
+            if excluded.endswith('/') and path == excluded:
+                return False
+
+        return True
 
     def authorization_header(self, request=None) -> str:
         """
-        Returns None for now, to be implemented later
-
-        Args:
-            request (flask.Request, optional): The Flask request object
-
-        Returns:
-            None
+        Placeholder for getting the authorization header from the request
         """
         return None
 
     def current_user(self, request=None) -> TypeVar('User'):
         """
-        Returns None for now, to be implemented later
-
-        Args:
-            request (flask.Request, optional): The Flask request object
-
-        Returns:
-            None
+        Placeholder for retrieving the current user
         """
         return None
