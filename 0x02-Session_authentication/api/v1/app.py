@@ -11,7 +11,10 @@ auth = None
 
 auth_type = os.getenv("AUTH_TYPE")
 
-if auth_type == "session_exp_auth":
+if auth_type == "session_db_auth":
+    from api.v1.auth.session_db_auth import SessionDBAuth
+    auth = SessionDBAuth()
+elif auth_type == "session_exp_auth":
     from api.v1.auth.session_exp_auth import SessionExpAuth
     auth = SessionExpAuth()
 elif auth_type == "session_auth":
@@ -35,10 +38,10 @@ def home():
 @app.route('/api/v1/users/me', methods=['GET'])
 def get_current_user():
     """
-    Example endpoint to get current user info.
-    This requires session-based authentication.
+    Example endpoint to get current user info using session auth.
     """
-    session_id = request.cookies.get(os.getenv("SESSION_NAME", "_my_session_id"))
+    session_name = os.getenv("SESSION_NAME", "_my_session_id")
+    session_id = request.cookies.get(session_name)
     if session_id is None:
         return jsonify({"error": "Forbidden"}), 403
 
@@ -46,7 +49,8 @@ def get_current_user():
     if user_id is None:
         return jsonify({"error": "Forbidden"}), 403
 
-    # For demo: Return user_id, in real app fetch user data from DB
+    # In real app, fetch user data from database
+    # For demonstration, we return user_id
     return jsonify({"user_id": user_id}), 200
 
 
