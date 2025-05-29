@@ -3,46 +3,45 @@
 """
 from flask import request
 from typing import List, TypeVar
+import os
 
 
 class Auth:
-    """Auth class for managing API authentication
+    """Auth class for managing the authentication
     """
 
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """Check if authentication is required"""
-        if path is None or excluded_paths is None or not excluded_paths:
+        """Check if authentication is required for the given path."""
+        if path is None or excluded_paths is None or excluded_paths == []:
             return True
-        if not path.endswith('/'):
+        if path[-1] != '/':
             path += '/'
-        for excluded in excluded_paths:
-            if excluded.endswith('*'):
-                if path.startswith(excluded[:-1]):
+        for ex_path in excluded_paths:
+            if ex_path.endswith('*'):
+                if path.startswith(ex_path[:-1]):
                     return False
-            elif path == excluded:
+            elif ex_path == path:
                 return False
         return True
 
     def authorization_header(self, request=None) -> str:
-        """Returns the value of the Authorization header"""
+        """Get the authorization header from the request."""
         if request is None:
             return None
-        return request.headers.get('Authorization')
+        return request.headers.get('Authorization', None)
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """Placeholder for current user (to be overridden)"""
+        """Get the current user (to be implemented later)."""
         return None
 
     def session_cookie(self, request=None):
-        """Returns a cookie value from a request"""
+        """
+        Returns the value of the session cookie from a request.
+        The name of the cookie is defined by the env variable SESSION_NAME.
+        """
         if request is None:
             return None
-        return request.cookies.get('_my_session_id')
-
-    def extract_base64_authorization_header(self, auth_header: str) -> str:
-        """Extracts the Base64 part of the Authorization header"""
-        if auth_header is None or not isinstance(auth_header, str):
+        session_name = os.getenv('SESSION_NAME')
+        if session_name is None:
             return None
-        if not auth_header.startswith("Basic "):
-            return None
-        return auth_header.split(" ", 1)[1]
+        return request.cookies.get(session_name)
