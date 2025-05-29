@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
-""" SessionAuth module for session authentication
+"""
+SessionAuth module for session authentication.
 """
 from api.v1.auth.auth import Auth
 import uuid
 
 
 class SessionAuth(Auth):
-    """Session authentication class"""
+    """
+    SessionAuth handles session-based authentication.
+    """
     user_id_by_session_id = {}
 
     def create_session(self, user_id: str = None) -> str:
         """
-        Creates a session ID for a given user_id
+        Create a Session ID for a given user_id.
 
         Args:
-            user_id (str): ID of the user
+            user_id (str): The user ID to associate with a session ID.
 
         Returns:
-            str: Session ID (UUID) or None if input invalid
+            str: The generated session ID, or None if invalid input.
         """
         if user_id is None or not isinstance(user_id, str):
             return None
