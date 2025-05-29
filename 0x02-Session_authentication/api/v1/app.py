@@ -1,75 +1,56 @@
 #!/usr/bin/env python3
-""" Main Application module
 """
-from flask import Flask, jsonify, abort, request
-from api.v1.views import app_views
-from flask_cors import CORS
-from os import getenv
-import os
+App initialization module for API v1.
+Initializes Flask app and auth system based on environment variables.
+"""
 
-app = Flask(__name__)
-CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
-app.register_blueprint(app_views)
+import os
+from flask import Flask, jsonify, request
 
 auth = None
-auth_type = getenv("AUTH_TYPE")
 
-if auth_type == "auth":
-    from api.v1.auth.auth import Auth
-    auth = Auth()
-elif auth_type == "basic_auth":
-    from api.v1.auth.basic_auth import BasicAuth
-    auth = BasicAuth()
+auth_type = os.getenv("AUTH_TYPE")
+
+if auth_type == "session_exp_auth":
+    from api.v1.auth.session_exp_auth import SessionExpAuth
+    auth = SessionExpAuth()
 elif auth_type == "session_auth":
     from api.v1.auth.session_auth import SessionAuth
     auth = SessionAuth()
+else:
+    from api.v1.auth.auth import Auth
+    auth = Auth()
+
+app = Flask(__name__)
 
 
-@app.before_request
-def before_request_func():
-    """ Run before every request to authenticate the user """
-    if auth is None:
-        return
-
-    excluded_paths = [
-        "/api/v1/status/",
-        "/api/v1/unauthorized/",
-        "/api/v1/forbidden/",
-        "/api/v1/auth_session/login/"  # NEW: added this path
-    ]
-
-    if not auth.require_auth(request.path, excluded_paths):
-        return
-
-    if auth.authorization_header(request) is None and auth.session_cookie(request) is None:
-        abort(401)
-
-    user = auth.current_user(request)
-    if user is None:
-        abort(403)
-
-    request.current_user = user
+@app.route('/', methods=['GET'])
+def home():
+    """
+    Simple welcome endpoint.
+    """
+    return jsonify({"message": "Welcome to the API"}), 200
 
 
-@app.errorhandler(404)
-def not_found(error) -> str:
-    """ Not found handler """
-    return jsonify({"error": "Not found"}), 404
+@app.route('/api/v1/users/me', methods=['GET'])
+def get_current_user():
+    """
+    Example endpoint to get current user info.
+    This requires session-based authentication.
+    """
+    session_id = request.cookies.get(os.getenv("SESSION_NAME", "_my_session_id"))
+    if session_id is None:
+        return jsonify({"error": "Forbidden"}), 403
+
+    user_id = auth.user_id_for_session_id(session_id)
+    if user_id is None:
+        return jsonify({"error": "Forbidden"}), 403
+
+    # For demo: Return user_id, in real app fetch user data from DB
+    return jsonify({"user_id": user_id}), 200
 
 
-@app.errorhandler(401)
-def unauthorized(error) -> str:
-    """ Unauthorized handler """
-    return jsonify({"error": "Unauthorized"}), 401
-
-
-@app.errorhandler(403)
-def forbidden(error) -> str:
-    """ Forbidden handler """
-    return jsonify({"error": "Forbidden"}), 403
-
-
-if __name__ == "__main__":
-    host = getenv("API_HOST", "0.0.0.0")
-    port = getenv("API_PORT", "5000")
-    app.run(host=host, port=int(port))
+if __name__ == '__main__':
+    host = os.getenv("API_HOST", "0.0.0.0")
+    port = int(os.getenv("API_PORT", 5000))
+    app.run(host=host, port=port)
