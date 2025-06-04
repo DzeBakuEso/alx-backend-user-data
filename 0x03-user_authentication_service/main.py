@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Main file to test the User model
+Main file to test the User model.
 """
 
 from user import User
@@ -8,5 +8,4 @@ from user import User
 print(User.__tablename__)
 
 for column in User.__table__.columns:
-    print(f"{column}: {column.type}")
-
+    print("{}: {}".format(column, column.type))
