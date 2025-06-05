@@ -42,7 +42,7 @@ class Auth:
         try:
             self._db.find_user_by(email=email)
             raise ValueError(f"User {email} already exists")
-        except Exception:
+        except NoResultFound:
             pass
 
         hashed_pwd = self._hash_password(password)
@@ -76,3 +76,21 @@ class Auth:
             str: String representation of a UUID.
         """
         return str(uuid.uuid4())
+
+    def create_session(self, email: str) -> str:
+        """
+        Create a session for a user by email.
+
+        Args:
+            email (str): User email.
+
+        Returns:
+            str: The session ID if user is found, otherwise None.
+        """
+        try:
+            user = self._db.find_user_by(email=email)
+            session_id = self._generate_uuid()
+            self._db.update_user(user.id, session_id=session_id)
+            return session_id
+        except NoResultFound:
+            return None

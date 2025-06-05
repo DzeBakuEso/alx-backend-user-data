@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""
-Main file
-"""
+"""Test create_session."""
 from auth import Auth
 
 email = 'bob@bob.com'
 password = 'MyPwdOfBob'
 auth = Auth()
 
-auth.register_user(email, password)
+try:
+    auth.register_user(email, password)
+except ValueError:
+    print(f"User {email} already exists")
 
-print(auth.valid_login(email, password))         # True
-print(auth.valid_login(email, "WrongPwd"))       # False
-print(auth.valid_login("unknown@email", password))  # False
+print(auth.create_session(email))
+print(auth.create_session("unknown@email.com"))
