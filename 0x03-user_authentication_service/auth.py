@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Authentication helper module."""
 import bcrypt
+import uuid
 from db import DB
 from user import User
 from sqlalchemy.orm.exc import NoResultFound
@@ -28,8 +29,15 @@ class Auth:
         """
         Register a new user.
 
+        Args:
+            email (str): User email.
+            password (str): Plain password.
+
+        Returns:
+            User: The newly created user.
+
         Raises:
-            ValueError: If email already exists.
+            ValueError: If user already exists.
         """
         try:
             self._db.find_user_by(email=email)
@@ -42,14 +50,14 @@ class Auth:
 
     def valid_login(self, email: str, password: str) -> bool:
         """
-        Validate a user's login credentials.
+        Validate user login credentials.
 
         Args:
-            email (str): Email address.
-            password (str): Plain text password.
+            email (str): User email.
+            password (str): Plain password.
 
         Returns:
-            bool: True if credentials match, else False.
+            bool: True if credentials are valid, else False.
         """
         try:
             user = self._db.find_user_by(email=email)
@@ -59,3 +67,12 @@ class Auth:
             return False
         except Exception:
             return False
+
+    def _generate_uuid(self) -> str:
+        """
+        Generate a new UUID.
+
+        Returns:
+            str: String representation of a UUID.
+        """
+        return str(uuid.uuid4())
