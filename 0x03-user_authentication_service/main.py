@@ -2,6 +2,25 @@
 """
 Main file
 """
-from auth import _hash_password
 
-print(_hash_password("Hello ALX"))
+from auth import Auth
+
+email = 'me@me.com'
+password = 'mySecuredPwd'
+
+auth = Auth()
+
+try:
+    user = auth.register_user(email, password)
+    print("successfully created a new user!")
+except ValueError as err:
+    print("could not create a new user: {}".format(err))
+
+try:
+    user = auth.register_user(email, password)
+    print("successfully created a new user!")
+except ValueError as err:
+    print("could not create a new user: {}".format(err))
+
+# Optional: Demonstrate password hashing directly (if needed)
+print(auth._hash_password("Hello ALX"))
