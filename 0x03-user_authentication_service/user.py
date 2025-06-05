@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-"""
-User model definition using SQLAlchemy ORM.
-"""
-
-from sqlalchemy.ext.declarative import declarative_base
+"""User model definition"""
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
 
 class User(Base):
-    """SQLAlchemy User model for the users table."""
+    """SQLAlchemy User model for users table"""
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     email = Column(String(250), nullable=False)
