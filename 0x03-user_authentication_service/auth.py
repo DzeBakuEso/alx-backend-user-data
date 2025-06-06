@@ -61,6 +61,13 @@ class Auth:
         except Exception:
             return None
 
+    def destroy_session(self, user_id: int) -> None:
+        """Destroys the session by setting the session_id to None."""
+        try:
+            self._db.update_user(user_id, session_id=None)
+        except Exception:
+            pass
+
     def _generate_uuid(self) -> str:
         """Generates a new UUID string."""
         return str(uuid4())
