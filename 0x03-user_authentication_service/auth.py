@@ -1,96 +1,74 @@
 #!/usr/bin/env python3
-"""Authentication helper module."""
+"""Auth module for handling user authentication
+"""
 import bcrypt
-import uuid
 from db import DB
 from user import User
-from sqlalchemy.orm.exc import NoResultFound
+from uuid import uuid4
+from typing import Optional
 
 
 class Auth:
-    """Auth class that proxies DB operations."""
-
-    def __init__(self) -> None:
+    """Auth class to interact with the authentication database.
+    """
+    def __init__(self):
         self._db = DB()
 
-    def _hash_password(self, password: str) -> bytes:
-        """
-        Hash a password with bcrypt.
-
-        Args:
-            password (str): Plain password.
-
-        Returns:
-            bytes: Salted bcrypt hash.
-        """
-        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-
     def register_user(self, email: str, password: str) -> User:
-        """
-        Register a new user.
-
-        Args:
-            email (str): User email.
-            password (str): Plain password.
-
-        Returns:
-            User: The newly created user.
-
+        """Registers a new user with hashed password.
         Raises:
             ValueError: If user already exists.
         """
         try:
             self._db.find_user_by(email=email)
             raise ValueError(f"User {email} already exists")
-        except NoResultFound:
-            pass
-
-        hashed_pwd = self._hash_password(password)
-        return self._db.add_user(email, hashed_pwd)
+        except Exception:
+            hashed_pwd = _hash_password(password)
+            return self._db.add_user(email, hashed_pwd)
 
     def valid_login(self, email: str, password: str) -> bool:
-        """
-        Validate user login credentials.
-
-        Args:
-            email (str): User email.
-            password (str): Plain password.
-
-        Returns:
-            bool: True if credentials are valid, else False.
+        """Validate user's login credentials.
+        Returns True if password matches, else False.
         """
         try:
             user = self._db.find_user_by(email=email)
-            if bcrypt.checkpw(password.encode("utf-8"),
-                              user.hashed_password):
+            if bcrypt.checkpw(password.encode(), user.hashed_password):
                 return True
-            return False
         except Exception:
-            return False
+            pass
+        return False
 
-    def _generate_uuid(self) -> str:
-        """
-        Generate a new UUID.
-
-        Returns:
-            str: String representation of a UUID.
-        """
-        return str(uuid.uuid4())
-
-    def create_session(self, email: str) -> str:
-        """
-        Create a session for a user by email.
-
-        Args:
-            email (str): User email.
-
-        Returns:
-            str: The session ID if user is found, otherwise None.
+    def create_session(self, email: str) -> Optional[str]:
+        """Creates a session ID for a user and stores it.
+        Returns the session ID or None if user not found.
         """
         try:
             user = self._db.find_user_by(email=email)
             session_id = self._generate_uuid()
             self._db.update_user(user.id, session_id=session_id)
             return session_id
-        except NoResultFound:
+        except Exception:
             return None
+
+    def get_user_from_session_id(self, session_id: str) -> Optional[User]:
+        """Returns the user associated with the session ID.
+        Returns None if session ID is invalid or user not found.
+        """
+        if session_id is None:
+            return None
+        try:
+            return self._db.find_user_by(session_id=session_id)
+        except Exception:
+            return None
+
+    def _generate_uuid(self) -> str:
+        """Generates a new UUID string."""
+        return str(uuid4())
+
+
+def _hash_password(password: str) -> bytes:
+    """Hashes a password using bcrypt with salt.
+    Returns:
+        bytes: The hashed password.
+    """
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
