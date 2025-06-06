@@ -1,35 +1,42 @@
 #!/usr/bin/env python3
-"""Auth module"""
+"""Auth class methods for user authentication"""
+
 import uuid
 from typing import Optional
-from db import DB
-from user import User
+from db import DB  # Assuming DB class is your database interface
+from user import User  # Assuming User is your user model
+from bcrypt import hashpw, gensalt
 
 
 class Auth:
-    """Auth class to manage the authentication process"""
-
     def __init__(self):
         self._db = DB()
 
-    # Other methods here ...
-
-    def get_reset_password_token(self, email: str) -> str:
-        """Generate a reset password token for user with email
+    def update_password(self, reset_token: str, password: str) -> None:
+        """
+        Update user's password using reset token.
 
         Args:
-            email (str): The user's email address
-
-        Returns:
-            str: The generated reset password token
+            reset_token (str): The reset password token.
+            password (str): The new password.
 
         Raises:
-            ValueError: If no user found with the email
+            ValueError: If no user found with the reset token.
         """
-        user = self._db.find_user_by(email=email)
-        if user is None:
-            raise ValueError(f"No user found for email: {email}")
+        if not reset_token or not password:
+            raise ValueError("reset_token and password must be provided")
 
-        reset_token = str(uuid.uuid4())
-        self._db.update_user(user.id, reset_token=reset_token)
-        return reset_token
+        user = self._db.find_user_by(reset_token=reset_token)
+        if user is None:
+            raise ValueError("Invalid reset token")
+
+        # Hash the new password
+        hashed = self._hash_password(password)
+
+        # Update user's hashed_password and reset_token fields
+        self._db.update_user(user.id, hashed_password=hashed, reset_token=None)
+
+    def _hash_password(self, password: str) -> str:
+        """Return the bcrypt hash of the password."""
+        hashed = hashpw(password.encode('utf-8'), gensalt())
+        return hashed.decode('utf-8')
